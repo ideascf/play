@@ -14,8 +14,8 @@ decorator.profile_log.setLevel('INFO')
 
 @decorator.qps()
 # @runner.ProcessRunner(1, 4)
-@runner.ThreadRunner(1, 2)
-@runner.GeventRunner(1, 10)
+@runner.ThreadRunner(1, 4)
+@runner.GeventRunner(1, 1000)
 def main():
     if hello.delay('hello').get():
         return True
@@ -23,5 +23,4 @@ def main():
         return False
 
 if __name__ == '__main__':
-
     main()
