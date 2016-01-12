@@ -1,15 +1,10 @@
 import rsa
 from OpenSSL import crypto
 
-from tools import decorator
+from tools import perf
 import config
 
-import logging
-import sys
-decorator.profile_log.addHandler(
-    logging.StreamHandler(sys.stdout)
-)
-decorator.profile_log.setLevel('INFO')
+perf.set_profile_log()
 
 RSA_KEY_BYTES = 1024
 # RSA_KEY_BYTES = 2048
@@ -29,7 +24,7 @@ def do():
 
     rsa.verify(s, ret_sign, pub_key)
 
-@decorator.timeit
+@perf.timeit
 def main():
     for _ in range(config.calc_times):
         do()

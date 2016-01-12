@@ -1,13 +1,8 @@
 #!/bin/python
 from task import hello
-from tools import decorator
+from tools import perf
 
-import logging, sys
-decorator.profile_log.addHandler(
-    logging.StreamHandler(sys.stdout)
-)
-decorator.profile_log.setLevel('INFO')
-
+perf.set_profile_log()
 
 def do():
     if hello.delay('hello').get():
@@ -15,12 +10,12 @@ def do():
     else:
         return False
 
-@decorator.qps()
+@perf.qps()
 def main():
     return do()
 
 
-@decorator.qps()
+@perf.qps()
 def main_0():
     return do()
 
@@ -30,7 +25,7 @@ def dummy():
         a = 1 + 1
 
 
-@decorator.qps()
+@perf.qps()
 def empty():
     dummy()
 

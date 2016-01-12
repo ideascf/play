@@ -1,12 +1,7 @@
-from gevent import monkey
-monkey.patch_all()
-
 import urllib2
 import rsa
 
-from tools import decorator
-from tools import runner
-from tools import counter
+from tools import perf
 
 TEST_URL = 'https://www.baidu.com'
 TEST_URL = 'http://127.0.0.1:9999/'
@@ -28,9 +23,7 @@ def make_keys():
     return g_pub_key, g_pri_key
 
 cnt = 0
-@decorator.qps()
-@runner.ProcessRunner(5, 4)
-# @runner.GeventRunner(5, 100)
+@perf.qps(duration_second=5, process_num=4)
 def do_with_rsa():
     global cnt
     _print('BEFORE sign', cnt)
@@ -57,10 +50,7 @@ def do_with_rsa():
 
     return True
 
-@decorator.qps()
-@runner.ProcessRunner(5, 4)
-# @runner.ThreadRunner(5, 100)
-# @runner.GeventRunner(5, 100)
+@perf.qps(duration_second=5, process_num=4)
 def do_no_rsa():
     global cnt
 

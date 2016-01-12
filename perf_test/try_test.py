@@ -1,7 +1,5 @@
-import logging
-import sys
+from tools import perf
 
-from tools import decorator
 
 def dumy(times=10000):
     a = 0
@@ -11,18 +9,18 @@ def dumy(times=10000):
 
     return a
 
-@decorator.timeit
+@perf.timeit
 def foo1():
     dumy()
 
-@decorator.timeit
+@perf.timeit
 def foo2():
     try:
         dumy()
     except Exception as e:
         print(e)
 
-@decorator.timeit
+@perf.timeit
 def foo3():
     for i in range(10000):
         try:
@@ -30,7 +28,7 @@ def foo3():
         except Exception as e:
             print(e)
 
-@decorator.timeit
+@perf.timeit
 def foo4():
     for i in range(10000):
         dumy(1)
