@@ -1,11 +1,12 @@
 import gevent
 
-from tools import decorator
+from tools import perf
+
 
 def foo():
     pass
 
-@decorator.timeit
+@perf.timeit
 def main():
     [
         gevent.spawn(foo)

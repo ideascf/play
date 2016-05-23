@@ -1,18 +1,10 @@
-import Crypto
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
-
 import config
-from tools import decorator
+from tools import perf
 
-import logging
-import sys
-decorator.profile_log.addHandler(
-    logging.StreamHandler(sys.stdout)
-)
-decorator.profile_log.setLevel('INFO')
-
+perf.set_profile_log()
 pub_key = priv_key = None
 
 def load_keys():
@@ -26,7 +18,7 @@ def load_keys():
 
     return pub_key, priv_key
 
-@decorator.timeit
+@perf.timeit
 def main():
     def do(pub_key, priv_key):
         d = SHA.new('hello')
@@ -40,7 +32,7 @@ def main():
     for _ in range(config.calc_times):
         do(pub_key, priv_key)
 
-@decorator.timeit
+@perf.timeit
 def main_01():
     def do(pub, priv):
         d = SHA.new('hello')

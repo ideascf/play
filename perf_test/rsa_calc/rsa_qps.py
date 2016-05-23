@@ -1,9 +1,6 @@
 import rsa
-import gevent
-import time
-import functools
 
-from tools import decorator
+from tools import perf
 import config
 
 RSA_KEY_BYTES = 1024
@@ -11,12 +8,7 @@ RSA_KEY_BYTES = 1024
 pub_key = None
 pri_key = None
 
-import logging
-import sys
-decorator.profile_log.addHandler(
-    logging.StreamHandler(sys.stdout)
-)
-decorator.profile_log.setLevel('INFO')
+perf.set_profile_log()
 
 
 def make_key():
@@ -30,7 +22,7 @@ def do():
     ret_sign = rsa.sign(s, pri_key, 'SHA-1')
     rsa.verify(s, ret_sign, pub_key)
 
-@decorator.timeit
+@perf.timeit
 def main():
     for _ in range(config.calc_times):
         do()
