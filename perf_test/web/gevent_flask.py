@@ -1,3 +1,6 @@
+from gevent import monkey
+monkey.patch_all()
+
 from gevent.wsgi import WSGIServer
 from pure_flask import app
 
