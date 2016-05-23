@@ -5,7 +5,8 @@ from tools import perf
 perf.set_profile_log()
 
 def do():
-    if hello.delay('hello').get():
+    #if hello.delay('hello').get():
+    if hello.delay('hello'):
         return True
     else:
         return False
