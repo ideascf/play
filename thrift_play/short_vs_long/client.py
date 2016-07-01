@@ -1,23 +1,32 @@
 # coding=utf-8
 """
+# 结果
+以下测试，在服务端有0.5秒的业务逻辑耗时下得出：
 1. 单进程、单线程
     - 短链接
-      10.0045740604秒执行了 (short_ping) 13183次，成功13183次，失败0次。QPS是1317.6972773/s。
+      10.0347189903秒执行了 (short_ping) 20次，成功20次，失败0次。QPS是1.99308022669/s。
     - 长连接
-      10.0046858788秒执行了 (long_ping) 50391次，成功50391次，失败0次。QPS是5036.73984478/s。
+      10.0233681202秒执行了 (long_ping) 20次，成功20次，失败0次。QPS是1.99533727188/s。
 2. 单进程、多线程(10)
     - 短链接
-      10.0551900864秒执行了 (short_ping) 18653次，成功18653次，失败0次。QPS是1855.06189737/s。
+      10.0624928474秒执行了 (short_ping) 200次，成功200次，失败0次。QPS是19.8757905255/s。
     - 长连接
-      10.0131649971秒执行了 (long_ping) 51797次，成功51797次，失败0次。QPS是5172.88989196/s。
+      10.0366990566秒执行了 (long_ping) 200次，成功200次，失败0次。QPS是19.926870266/s。
 3. 单进程、单线程、多协程(10)
     - 短链接
-      10.0227820873秒执行了 (short_ping) 12167次，成功12167次，失败0次。QPS是1213.93440404/s。
+      10.1149840355秒执行了 (short_ping) 200次，成功200次，失败0次。QPS是19.7726461355/s。
     - 长连接
-      10.0158090591秒执行了 (long_ping) 43258次，成功43258次，失败0次。QPS是4318.97211145/s。
+      10.0474460125秒执行了 (long_ping) 200次，成功200次，失败0次。QPS是19.9055560738/s。
+
+# 总结
+- 当业务逻辑耗时:连接建立耗时，比例很高的时候，且*并发数不高*的时候，长短连接差异性不是很明显
+- 但本测试没有将服务端压倒极限，以看短链接和长连接的差异(差异性主要在于不断的连接建立和断开引起的性能开销)
+- 故，本测试*不具有*代表性意义
 """
-from gevent import monkey
-monkey.patch_all()
+
+
+# from gevent import monkey
+# monkey.patch_all()
 
 from thrift.transport import TSocket
 from thrift.transport import TTransport
@@ -59,8 +68,8 @@ def gen_long_client():
     return l.long_client
 
 # @perf.qps()
-# @perf.qps(concurrency=10, runner_name='thread')
-@perf.qps(concurrency=10, runner_name='gevent')
+@perf.qps(concurrency=10, runner_name='thread')
+# @perf.qps(concurrency=10, runner_name='gevent')
 def short_ping():
     cli = gen_short_client()
     cli.ping('ping')
@@ -81,8 +90,8 @@ def main():
     perf.set_profile_log()
 
 
-    short_ping()
-    # long_ping()
+    # short_ping()
+    long_ping()
 
 
 if __name__ == '__main__':
