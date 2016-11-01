@@ -1,0 +1,2 @@
+- 不同的worker,如果他们的职能不同,必须保证他们使用的queue不同.
+- 为了保证task的正确路由, 如果这些task不是特殊需要. 那么: 要么routing_key不同,要么exchange不同.
