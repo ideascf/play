@@ -1,9 +1,9 @@
 import time
 import celery
 
-cel = celery.Celery('tasks', broker='redis://')
+app = celery.Celery('tasks', broker='redis://')
 
-@cel.task
+@app.task
 def sendmail(mail):
     print('sending mail to %s...' % mail)
     time.sleep(2.0)
