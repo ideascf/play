@@ -89,18 +89,37 @@ def mix(activity_dict, code):
     im = Image.open(background_path)
     """:type: JpegImageFile"""
     im = im.convert(mode='RGBA')  # 后续操作是以RGB的模式进行,故先把背景图片格式转换为RGB模式
-
-    font2 = ImageFont.truetype(font2_path)
-
     draw = ImageDraw.Draw(im, 'RGBA')
 
-    max_w, max_h = im.size
 
-    #### 绘制时间字符串 ####
     date_str_font_size = int(width_scale * 35)  # 活动时间字符串的字体大小
     date_str_font = ImageFont.truetype(font1_path, date_str_font_size)
     date_color = '#8A5D3B'
 
+    dot_font_size = int(width_scale * 14)  # 原点尺寸: 14PX
+    dot_font = ImageFont.truetype(font2_path, dot_font_size)
+    dot_color = '#F7913C'
+
+    rule_font_size = int(width_scale * 60)  # 储值规则文字尺寸: 60PX
+    rule_font = ImageFont.truetype(font1_path, rule_font_size)
+    rule_color = '#8A5D3B'
+
+    amt_font_size = int(width_scale * 65)  # 储值规则中金额文字尺寸: 65PX
+    # index=2, 选择: 'Lantinghei SC', 'Heavy' 字体
+    amt_font = ImageFont.truetype(font2_path, amt_font_size, index=2)
+    amt_font_height_padding = amt_font_size / 5
+    pay_amt_color = '#8A5D3B'
+    present_amt_color = '#FD5359'
+    pay_amt_width = int(width_scale * 248)  # 支付金额宽度: 248PX
+    present_amt_width = int(width_scale * 180)  # 赠送金额宽度: 180PX
+
+    copyright_notice_font_size = int(width_scale * 25)  # 最终解释权文字尺寸: 25PX
+    # index=2, 选择: 'Lantinghei SC', 'Heavy' 字体
+    copyright_notice_font = ImageFont.truetype(font2_path, copyright_notice_font_size, index=2)
+    copyright_notice_color = '#8A5D3B'
+
+
+    #### 绘制时间字符串 ####
     date_str = u'%s月%s日-%s月%s日' % (start_date.month, start_date.day, end_date.month, end_date.day)
     w, h = draw.textsize(date_str, date_str_font)  # 可通过此方法得到date_str 的实际像素box
     date_str_pos = (2300, 2050)  # 活动时间字符串的起始位置,  @IMPORTANT 请按实际计算得到
@@ -111,35 +130,16 @@ def mix(activity_dict, code):
         font=date_str_font,
     )
 
+
     #### 绘制储值规则 #####
-    dot_font_size = int(width_scale * 14)  # 原点尺寸: 14PX
-    dot_font = ImageFont.truetype(font2_path, dot_font_size)
-    dot_color = '#F7913C'
-
-    rule_font_size = int(width_scale * 60)  # 储值规则文字尺寸: 60PX
-    rule_font = ImageFont.truetype(font1_path, rule_font_size)
-    rule_color = '#8A5D3B'
-
-    amt_font_size = int(width_scale * 65)  # 储值规则中金额文字尺寸: 65PX
-    amt_font = ImageFont.truetype(font2_path, amt_font_size)
-    pay_amt_color = '#8A5D3B'
-    present_amt_color = '#FD5359'
-    pay_amt_width = int(width_scale * 248)  # 支付金额宽度: 248PX
-    present_amt_width = int(width_scale * 180)  # 赠送金额宽度: 180PX
-
-    copyright_notice_font_size = int(width_scale * 25)  # 最终解释权文字尺寸: 25PX
-    copyright_notice_font = ImageFont.truetype(font2_path, copyright_notice_font_size)
-    copyright_notice_color = '#8A5D3B'
-
-
-
     # 规则字符串的起始位置,  @IMPORTANT 请按实际计算得到
+    rule_line_text_height = rule_font.getsize(u'储值')[1] # 每行储值规则文字的高度
     rule_str_pos = (1000, 2600)
     cur_x, cur_y = rule_str_pos
     for rule in activity_dict['rules']:
         # 绘制圆点
         draw.text(
-            (cur_x, cur_y),
+            (cur_x, text_vertical_center(u'●', dot_font, cur_y, rule_line_text_height)),
             u'●',
             fill=dot_color,
             font=dot_font
@@ -157,16 +157,19 @@ def mix(activity_dict, code):
             font=rule_font,
         )
         cur_x += rule_font.getsize(u'储值')[0]
+        print '###1', cur_y
 
         # 绘制 支付金额
         pay_amt_text = u'{}'.format(rule['pay_amt']/100)  # 单位转为: 元
         draw.text(
-            (text_horizon_center(pay_amt_text, rule_font, cur_x, pay_amt_width), cur_y),
+            (text_horizon_center(pay_amt_text, amt_font, cur_x, pay_amt_width), cur_y-amt_font_height_padding),  # 兰亭字体height有padding
             pay_amt_text,
             fill=pay_amt_color,
             font=amt_font,
         )
         cur_x += pay_amt_width
+        print '###2', cur_y
+
 
         # 绘制 '元送'  二字
         draw.text(
@@ -180,7 +183,7 @@ def mix(activity_dict, code):
         # 绘制赠送金额
         present_amt_text = u'{}'.format(rule['present_amt'] / 100)  # 单位转为: 元
         draw.text(
-            (text_horizon_center(present_amt_text, rule_font, cur_x, present_amt_width), cur_y),
+            (text_horizon_center(present_amt_text, amt_font, cur_x, present_amt_width), cur_y-amt_font_height_padding),  # 兰亭字体height有padding
             present_amt_text,
             fill=present_amt_color,
             font=amt_font,
@@ -200,10 +203,15 @@ def mix(activity_dict, code):
         cur_x = rule_str_pos[0]
         cur_y += (height_scale * 40) + rule_font.getsize(u'储值')[1]  # 规则上下行距40PX + 文字高度
 
-    # 绘制最终解释权文案
+
+    #### 绘制最终解释权文案 ####
     # 绘制圆点
+    s = activity_dict['copyright_notice']
+    copyright_notice_str = s if isinstance(s, unicode) else s.decode('utf8')
+    copyright_notice_text_height = copyright_notice_font.getsize('文字')[1]
+
     draw.text(
-        (cur_x, cur_y),
+        (cur_x, text_vertical_center(u'●', dot_font, cur_y, copyright_notice_text_height)),
         u'●',
         fill=dot_color,
         font=dot_font
@@ -213,8 +221,7 @@ def mix(activity_dict, code):
     # 圆点和文字之间间隔28PX
     cur_x += (width_scale * 28)
 
-    s = activity_dict['copyright_notice']
-    copyright_notice_str = s if isinstance(s, unicode) else s.decode('utf8')
+    # 绘制最终解释权文字
     draw.text(
         (cur_x, cur_y),
         copyright_notice_str,
@@ -222,8 +229,18 @@ def mix(activity_dict, code):
         font=copyright_notice_font
     )
 
+    # 测试兰亭字体height的padding
+    # draw.text(
+    #     (0, 0),
+    #     u'测试',
+    #     fill=pay_amt_color,
+    #     font=ImageFont.truetype(font2_path, 150, index=2),
+    # )
+    # h = 30
+    # draw.line((0, h, 1000, h), fill='black', width=1)
 
-    # 绘制二维码
+
+    #### 绘制二维码 ####
     qr_box_top_x = int(550 * width_scale)
     qr_box_top_y = int(1136 * height_scale)
     qr_box_width =  int(147 * width_scale)
