@@ -1,11 +1,13 @@
 # coding=utf-8
 import qrcode
 import datetime
-from PIL import Image, ImageFont, ImageDraw
+from PIL import Image, ImageFont, ImageDraw, ImageColor
 from PIL.JpegImagePlugin import JpegImageFile
 
 
-background_path = './海报/空白海报.jpg'
+background_cmyk_path = './background/cmyk海报.jpg'
+background_rgb_path = './background/rgb海报.jpg'
+
 font1_path = './font/造字工房尚黑G0v1粗体.otf'
 font2_path = './font/Lantinghei.ttc'
 activity_dict = {
@@ -72,10 +74,47 @@ def text_vertical_center(text, font, target_pos_y, target_height):
     return top_y
 
 
-def mix(activity_dict, code):
+rgb_scale = 255
+cmyk_scale = 100
+
+
+def rgb_to_cmyk(r,g,b):
+    if (r == 0) and (g == 0) and (b == 0):
+        # black
+        return 0, 0, 0, cmyk_scale
+
+    # rgb [0,255] -> cmy [0,1]
+    c = 1 - r / float(rgb_scale)
+    m = 1 - g / float(rgb_scale)
+    y = 1 - b / float(rgb_scale)
+
+    # extract out k [0,1]
+    min_cmy = min(c, m, y)
+    c = (c - min_cmy)
+    m = (m - min_cmy)
+    y = (y - min_cmy)
+    k = min_cmy
+
+    # rescale to the range [0,cmyk_scale]
+    # return c*cmyk_scale, m*cmyk_scale, y*cmyk_scale, k*cmyk_scale
+    ret = (c*cmyk_scale, m*cmyk_scale, y*cmyk_scale, k*cmyk_scale)
+    return tuple(int(i) for i in ret)
+
+
+def cmyk_to_rgb(c,m,y,k):
+    """
+    """
+    r = rgb_scale*(1.0-(c+k)/float(cmyk_scale))
+    g = rgb_scale*(1.0-(m+k)/float(cmyk_scale))
+    b = rgb_scale*(1.0-(y+k)/float(cmyk_scale))
+    return r,g,b
+
+
+def mix(background_path, activity_dict, code):
     """
     1. 出现的pos,不做特殊说明时, 均代表左上角坐标
     2. 文档中标注的PX,均需要乘上scale得到实际的像素值
+    3. 目前只支持RGB/RGBA格式的合成
     """
 
     width_scale = 5031/1207.0
@@ -88,8 +127,7 @@ def mix(activity_dict, code):
 
     im = Image.open(background_path)
     """:type: JpegImageFile"""
-    im = im.convert(mode='RGBA')  # 后续操作是以RGB的模式进行,故先把背景图片格式转换为RGB模式
-    draw = ImageDraw.Draw(im, 'RGBA')
+    draw = ImageDraw.Draw(im, im.mode)
 
 
     date_str_font_size = int(width_scale * 35)  # 活动时间字符串的字体大小
@@ -157,7 +195,6 @@ def mix(activity_dict, code):
             font=rule_font,
         )
         cur_x += rule_font.getsize(u'储值')[0]
-        print '###1', cur_y
 
         # 绘制 支付金额
         pay_amt_text = u'{}'.format(rule['pay_amt']/100)  # 单位转为: 元
@@ -168,7 +205,6 @@ def mix(activity_dict, code):
             font=amt_font,
         )
         cur_x += pay_amt_width
-        print '###2', cur_y
 
 
         # 绘制 '元送'  二字
@@ -262,16 +298,18 @@ def mix(activity_dict, code):
     qr.make(fit=True)
 
     img_qr = qr.make_image()
-    img_qr = img_qr.convert("RGBA")
+    img_qr = img_qr.convert(im.mode)
     img_qr = img_qr.resize((qr_box_width, qr_box_height), Image.ANTIALIAS)
     im.paste(img_qr, box)
 
     ##### 保存 #####
-    im.save('a.jpg', 'JPEG', quality=100)
+    target_filename = '{code}_{mode}.jpg'.format(code=code, mode=im.mode)
+    im.save(target_filename, 'JPEG', quality=100)
 
 
 def main():
-    mix(activity_dict, '5nevG')
+    mix(background_rgb_path, activity_dict, '5nevG')
+    # mix(background_cmyk_path, activity_dict, '5nevG')
 
 
 if __name__ == '__main__':
