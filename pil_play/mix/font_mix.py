@@ -127,6 +127,10 @@ def mix(background_path, activity_dict, code):
 
     im = Image.open(background_path)
     """:type: JpegImageFile"""
+    orig_mode = im.mode  # 保存图片的原始颜色模式
+    # 确保图片在操作过程中为RGB的颜色模式, CMYK的颜色模式颜色会有问题
+    if orig_mode != 'RGB':
+        im = im.convert('RGB')
     draw = ImageDraw.Draw(im, im.mode)
 
 
@@ -303,13 +307,16 @@ def mix(background_path, activity_dict, code):
     im.paste(img_qr, box)
 
     ##### 保存 #####
+    # 把图片颜色模式转换为原始的颜色模式
+    if im.mode != orig_mode:
+        im = im.convert(orig_mode)
     target_filename = '{code}_{mode}.jpg'.format(code=code, mode=im.mode)
     im.save(target_filename, 'JPEG', quality=100)
 
 
 def main():
     mix(background_rgb_path, activity_dict, '5nevG')
-    # mix(background_cmyk_path, activity_dict, '5nevG')
+    mix(background_cmyk_path, activity_dict, '5nevG')
 
 
 if __name__ == '__main__':

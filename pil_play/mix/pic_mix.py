@@ -71,8 +71,11 @@ def mix_qrcode(background_path, qr_data_str, qr_box):
 
     # 背景图片
     im = Image.open(background_path)
-    print im
     """:type: JpegImageFile"""
+    orig_mode = im.mode  # 保存图片的原始颜色模式
+    # 确保图片在操作过程中为RGB的颜色模式, CMYK的颜色模式颜色会有问题
+    if orig_mode != 'RGB':
+        im = im.convert('RGB')
 
     # 在指定像素填上二维码
     box = (qr_box_top_x, qr_box_top_y, qr_box_top_x+qr_box_width, qr_box_top_y+qr_box_height)
@@ -88,6 +91,9 @@ def mix_qrcode(background_path, qr_data_str, qr_box):
     im.paste(img_qr, box)
     target_filename = os.path.split(background_path)[1]
 
+    # 把图片颜色模式转换为原始的颜色模式
+    if im.mode != orig_mode:
+        im = im.convert(orig_mode)
     im.save(os.path.join(save_dir, target_filename), 'JPEG', quality=100)
 
 
