@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        // parseUri 1.2.2
+        // (c) Steven Levithan <stevenlevithan.com>
+        // MIT License
+
+        function parseUri (str) {
+            var	o   = parseUri.options,
+                m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+                uri = {},
+                i   = 14;
+
+            while (i--) uri[o.key[i]] = m[i] || "";
+
+            uri[o.q.name] = {};
+            uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+                if ($1) uri[o.q.name][$1] = $2;
+            });
+
+            return uri;
+        };
+
+        parseUri.options = {
+            strictMode: false,
+            key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+            q:   {
+                name:   "queryKey",
+                parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+            },
+            parser: {
+                strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+                loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+            }
+        };
+
+
+        (function(open) {
+            XMLHttpRequest.prototype.open = function (method, url, async, user, pass) {
+                console.log("origin url: " + url);
+
+                urlInfo = parseUri(url);
+                if (urlInfo.host === "" || urlinfo.protocol === "") {
+                    newUrl = "http://www.easy-mock.com/mock/58ff77c9739ac1685205a415/example" + url;
+                } else {
+                    newUrl = url;
+                }
+
+                console.log("target url: " + newUrl);
+
+                open.call(
+                    this,
+                    method,
+                    newUrl,
+                    async,
+                    user,
+                    pass
+                )
+            }
+        })(XMLHttpRequest.prototype.open)
+        // http://www.easy-mock.com/mock/58ff77c9739ac1685205a415/example/user
+    </script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="http:/ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+        function haha(){
+            $.ajax({
+                type: 'GET',
+                url: '/user',
+                success: function (data) {
+                    $('#label').html(JSON.stringify(data))
+                }
+            });
+        }
+    </script>
+</head>
+
+<body>
+<h1>点下面的按钮，这里会变化</h1>
+<p id="label">***</p>
+<button onclick="haha()">点我</button>
+</body>
+</html>
